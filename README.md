@@ -1,13 +1,12 @@
 # demographic-identifier
-Ever wondered how to engage more diversity in communications? This toolkit identifies gender, age and ethnic communities on Twitter with computer vision and analyzes what makes a message inclusive using neural sentence embeddings.
+Python toolkit to identify the gender, age and race of individual profiles on Twitter with computer vision and analyze demographic-level differences in topic discussions.
 
 ## Examples
 ![Overview of approach](https://raw.githubusercontent.com/wri/demographic-identifier/master/img/use-2.png)
 *Semantic similarity of randomly sampled Tweets about legislation, innovation, and clean water shows the ability of the Universal Sentence Encoder to cluster Tweets by meaning.*
 
-![Overview of approach](https://raw.githubusercontent.com/wri/demographic-identifier/master/img/age-gender.png)
-*Distribution of select topics by age (left) and gender (right) allows the user to understand how certain demographics engage with different messages.*
-
+![Summary results](https://raw.githubusercontent.com/wri/demographic-identifier/master/img/png/gender_race.png)
+*Distribution of select topics by gender (left) and race (right) allows the user to understand demographic differences in topic engagement.*
 
 ## Installation
 
@@ -38,7 +37,8 @@ Ethnicity is estimated using the Python package [ethnicolr](https://github.com/a
 pred_wiki_name -o {output.csv} -l last.name -f first.name {input.csv}
 ```
 
-We have tested ethnicity identification using computer vision, but without training a model from scratch - which we do not have the labelled data for - there does not seem to be any deployable alternatives.
+#### 4. Visualization
+The `demographic_summary.R` script will create a summary visualization of number of twitter handles by demographic. The `demographic_topics.R` script can be used to create the above figures of topic distributions by demographic.
 
 
 ## Methodology
@@ -60,16 +60,11 @@ The `spell-correction.py` script will take an input CSV of tweets and write clea
 
 #### Semantics and topics
 
-Differences in semantics between demographic groups can be modelled with [neural variational inference](https://arxiv.org/abs/1511.06038) or sentence embeddings that do not rely on continuous sentences, such as [doc2vec](https://cs.stanford.edu/~quocle/paragraph_vector.pdf). With large amounts of training data, semantics may be modelled by taking the l2 norm of the summation of word level multilingual embeddings, such as [MUSE](https://github.com/facebookresearch/MUSE). 
+In order to model the semantic and topical structure of Tweets, a number of recent natural language processing approaches were tested. These include latent Bayesian approaches such as latent Dirichlet allocation (Blei, 2003), structured topic models (Roberts, 2013), biterm topic models (Yan, 2013), as well as neural embedding approaches including Word2vec (Mikelov, 2014), Tweet2vec (Vosoughi, 2016), MUSE (Conneau et al., 2018), and the Universal Sentence Encoder (Cer et al., 2018). The Universal Sentence Encoder (USE) performed better than the other tested approaches when qualitatively evaluated on sentence similarity and topic coherence.
+
+The Universal Sentence Encoder (Cer et al., 2018) leverages transfer learning to learn task-invariant sentence representations. The pre-trained model uses the transformer architecture (Vaswani et al., 2017) to jointly learn tasks including sentiment, subjectivity, and polarity analysis as well as question classification and semantic similarity. This generalizability makes it a strong candidate for representing the topics and meanings of Tweets, which vary widely in diction and prose. 138,512 Tweets from over 135,708 unique handles were encoded with the pretrained USE model and clustered with K-nearest neighbors (KNN) clustering. Cluster amounts ranging from 50-250 were tested by reading random stratified subsamples of 20 randomly chosen topics. KNN with k = 200 was selected for final analysis based on this manual validation method. Each of the 200 topics were manually labelled by reading 50 random Tweets in each topic. Full code and descriptions are contained in the `USE-embeddings.ipnyb` notebook.
 
 ## Issues / To-do
-
-1. ~~Remove blank / one-word / only mentions in tweets / NA~~
-2. ~~Include the subsetting of english tweets in the csv creation stage~~
-3. ~~Save embeddings as a dict id: embed~~
-4. ~~TSNE visualization of embeddings by demographic groups~~
-5. ~~Cluster analysis of embeddings / identify which clusters are most unique to which demographics~~
-6. ~~Create visualization of initial results!~~
-7. Train custom tweet2vec
-8. Transition R scripts to python where available
-9. Transition tweet2vec to python 3 if possible
+1. Transition R scripts to python where available
+2. Code commenting and documentation of pipeline
+3. Clean up data folder and make data workflow more clear
